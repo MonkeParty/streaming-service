@@ -1,14 +1,16 @@
+from app.config import settings
+
 import boto3
 import os
 
 s3_client = boto3.client(
     's3',
-    aws_access_key_id="admin",  
-    aws_secret_access_key="admin123", 
-    endpoint_url="http://localhost:9000", 
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+    endpoint_url=settings.S3_ENDPOINT_URL,
 )
 
-BUCKET_NAME = "movies"  
+BUCKET_NAME = settings.S3_BUCKET
 MEDIA_ID = "12345" 
 LOCAL_DIR = "video"  
 

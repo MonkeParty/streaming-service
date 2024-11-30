@@ -1,23 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from app.config import settings
+
 import boto3
 import os
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
-    )
-
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    S3_ENDPOINT_URL: str
-    S3_BUCKET: str
-
-
-settings = Settings()
-
 
 app = FastAPI()
 
