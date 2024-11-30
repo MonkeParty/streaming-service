@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from main import app
-from moto import mock_s3
+from moto import mock_aws
 import boto3
 import os
 import pytest
@@ -10,7 +10,7 @@ client = TestClient(app)
 # Мокинг S3
 @pytest.fixture(autouse=True)
 def setup_s3():
-    with mock_s3():
+    with mock_aws():
         s3 = boto3.client("s3")
         s3.create_bucket(Bucket="movies")
 
