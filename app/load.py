@@ -1,4 +1,4 @@
-from app.config import settings
+from config import settings
 
 import boto3
 import os

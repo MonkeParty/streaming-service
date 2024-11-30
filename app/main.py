@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from app.config import settings
+from config import settings
 
 import boto3
 import os
