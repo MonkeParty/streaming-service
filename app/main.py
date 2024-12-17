@@ -53,12 +53,29 @@ async def stream_segment(video_id: int, segment_name: str):
 @app.post('/upload/{video_id}')
 async def upload_video(video_id: int, file: UploadFile):
     '''
-    Upload a new video file to MinIO under the specified media ID
-
-    Should be used to upload each video segment (`.ts` file) individually, and a `.m3u8` 
+    Upload a new `.m3u8` file to MinIO under the specified media ID
     '''
+    key = f'{video_id}/{file.filename}'
+
     try:
-        key = f'{video_id}/{file.filename}'
+        s3_client.upload_fileobj(file.file, MINIO_BUCKET, key)
+        return {'message': 'File uploaded successfully', 'key': key}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Failed to upload file: {str(e)}')
+
+@app.post('/upload/{video_id}/{segment_name}')
+async def upload_segment(video_id: int, segment_name: str, file: UploadFile):
+    '''
+    Upload a new segment file to MinIO under the specified media ID
+
+    `file`'s name and `segment_name` must match
+    '''
+    if segment_name != file.filename:
+        raise HTTPException(status_code=400, detail=f'file name and segment name don\'t match')
+
+    key = f'{video_id}/{segment_name}'
+
+    try:
         s3_client.upload_fileobj(file.file, MINIO_BUCKET, key)
         return {'message': 'File uploaded successfully', 'key': key}
     except Exception as e:
