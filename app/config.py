@@ -1,14 +1,15 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
+from pathlib import Path
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
-    )
+    model_config = SettingsConfigDict(env_file=Path.cwd()/'.env', env_file_encoding='utf-8')
 
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    S3_ENDPOINT_URL: str
-    S3_BUCKET: str
+    minio_root_user: str
+    minio_root_password: str
+    minio_endpoint_url: str
+    minio_bucket: str
+    minio_port: int
+    minio_console_port: int
 
 settings = Settings()

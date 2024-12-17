@@ -1,20 +1,21 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from config import settings
+from app.config import settings
 
 import boto3
-import os
+
 
 app = FastAPI()
 
 s3_client = boto3.client(
     's3',
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    endpoint_url=settings.S3_ENDPOINT_URL,
+    aws_access_key_id=settings.minio_root_user,
+    aws_secret_access_key=settings.minio_root_password,
+    endpoint_url=settings.minio_endpoint_url,
 )
-S3_BUCKET = settings.S3_BUCKET
+
+MINIO_BUCKET = settings.minio_bucket
 
 
 class StreamRequest(BaseModel):
@@ -27,13 +28,9 @@ async def stream_media(media_id: str):
     Эндпоинт для стриминга видео по ID
     '''
     try:
-        presigned_url = s3_client.generate_presigned_url(
+        return RedirectResponse(url=s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': S3_BUCKET, 'Key': f'{media_id}/output.m3u8'},
-            EXpiresIn=3600,
-        )
-        return RedirectResponse(url=presigned_url)
+            Params={'Bucket': MINIO_BUCKET, 'Key': f'{media_id}/output.m3u8'},
+        ))
     except Exception as e:
         raise HTTPException(status_code=404, detail=f'Media not found: {str(e)}')
-
-    
