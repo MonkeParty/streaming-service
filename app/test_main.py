@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from main import app
 from moto import mock_aws
 import boto3
-import os
 import pytest
 
 client = TestClient(app)

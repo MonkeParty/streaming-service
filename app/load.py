@@ -1,3 +1,7 @@
+'''
+Upload local files from ./video folder to minio
+'''
+
 from config import settings
 
 import boto3
@@ -10,15 +14,15 @@ s3_client = boto3.client(
     endpoint_url=settings.minio_endpoint_url,
 )
 
-BUCKET_NAME = settings.minio_bucket
+MINIO_BUCKET = settings.minio_bucket
 VIDEO_FOLDER = './video'
 
 
 try:
-    s3_client.create_bucket(Bucket=BUCKET_NAME)
-    print(f'Bucket {BUCKET_NAME} created.')
+    s3_client.create_bucket(Bucket=MINIO_BUCKET)
+    print(f'Bucket {MINIO_BUCKET} created.')
 except s3_client.exceptions.BucketAlreadyOwnedByYou:
-    print(f'Bucket {BUCKET_NAME} already exists.')
+    print(f'Bucket {MINIO_BUCKET} already exists.')
 
 
 media_id = 0
@@ -27,12 +31,12 @@ for root, dirs, files in os.walk(VIDEO_FOLDER):
     for file in files:
         file_path = os.path.join(root, file)
         key = f'{media_id}/{file}'
-        s3_client.upload_file(file_path, BUCKET_NAME, key)
+        s3_client.upload_file(file_path, MINIO_BUCKET, key)
         media_id += 1
-        print(f'File {file_path} uploaded to s3://{BUCKET_NAME}/{key}')
+        print(f'File {file_path} uploaded to s3://{MINIO_BUCKET}/{key}')
 
 
-response = s3_client.list_objects_v2(Bucket=BUCKET_NAME, Prefix=str(media_id))
+response = s3_client.list_objects_v2(Bucket=MINIO_BUCKET, Prefix=str(media_id))
 for obj in response.get('Contents', []):
     print(obj['Key'])
 
