@@ -6,7 +6,7 @@ docker compose up -d
 uvicorn app.main:app
 ```
 
-## Convert all videos from `full-vides` to `hls-videos` (from `.mp4` to `.m3u8` and `.ts`)
+## Convert all videos from `./full-videos` to `./hls-videos` (from `.mp4` to `.m3u8` and `.ts`)
 ```sh
 chmod +x ./convert-mp4-to-hls.sh
 ./convert-mp4-to-hls.sh
