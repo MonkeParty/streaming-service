@@ -28,38 +28,38 @@ class StreamRequest(BaseModel):
     media_id: str
 
 
-@app.get('/{video_id}')
-async def stream_video(video_id: int):
+@app.get('/{movie_id}')
+async def stream_video(movie_id: int):
     '''
     Get `.m3u8` file for streaming
     '''
     try:
         return RedirectResponse(url=s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': MINIO_BUCKET, 'Key': f'{video_id}/output.m3u8'},
+            Params={'Bucket': MINIO_BUCKET, 'Key': f'{movie_id}/output.m3u8'},
         ))
     except Exception as e:
         raise HTTPException(status_code=404, detail=f'Media not found: {str(e)}')
 
-@app.get('/{video_id}/{segment_name}')
-async def stream_segment(video_id: int, segment_name: str):
+@app.get('/{movie_id}/{segment_name}')
+async def stream_segment(movie_id: int, segment_name: str):
     '''
-    Get a segment named `segment_name` at video with id `video_id`
+    Get a segment named `segment_name` at video with id `movie_id`
     '''
     try:
         return RedirectResponse(url=s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': MINIO_BUCKET, 'Key': f'{video_id}/{segment_name}'},
+            Params={'Bucket': MINIO_BUCKET, 'Key': f'{movie_id}/{segment_name}'},
         ))
     except Exception as e:
         raise HTTPException(status_code=404, detail=f'Media not found: {str(e)}')
 
 
 
-@app.post('/{video_id}')
-async def upload_video(video_id: int, file: UploadFile):
+@app.post('/{movie_id}')
+async def upload_video(movie_id: int, file: UploadFile):
     """
-    Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `video_id`
+    Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `movie_id`
     """
     with TemporaryDirectory() as temp_dir:
         input_file_path = os.path.join(temp_dir, file.filename)
@@ -98,7 +98,7 @@ async def upload_video(video_id: int, file: UploadFile):
         # upload m3u8 and the segments to S3
         try:
             # m3u8
-            m3u8_key = f"{video_id}/output.m3u8"
+            m3u8_key = f"{movie_id}/output.m3u8"
             with open(output_m3u8_path, "rb") as m3u8_file:
                 s3_client.upload_fileobj(m3u8_file, MINIO_BUCKET, m3u8_key)
 
@@ -106,7 +106,7 @@ async def upload_video(video_id: int, file: UploadFile):
             for segment_file in os.listdir(output_dir):
                 if segment_file.endswith(".ts"):
                     segment_path = os.path.join(output_dir, segment_file)
-                    segment_key = f"{video_id}/{segment_file}"
+                    segment_key = f"{movie_id}/{segment_file}"
                     with open(segment_path, "rb") as ts_file:
                         s3_client.upload_fileobj(ts_file, MINIO_BUCKET, segment_key)
 
