@@ -44,7 +44,7 @@ async def stream_video(movie_id: int):
 @app.get('/{movie_id}/{segment_name}')
 async def stream_segment(movie_id: int, segment_name: str):
     '''
-    Get a segment named `segment_name` at video with id `movie_id`
+    Get a segment named `segment_name` for movie with id `movie_id`
     '''
     try:
         return RedirectResponse(url=s3_client.generate_presigned_url(
