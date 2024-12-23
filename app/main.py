@@ -28,7 +28,7 @@ class StreamRequest(BaseModel):
     media_id: str
 
 
-@app.get('/stream/{video_id}')
+@app.get('/{video_id}')
 async def stream_video(video_id: int):
     '''
     Get `.m3u8` file for streaming
@@ -41,7 +41,7 @@ async def stream_video(video_id: int):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f'Media not found: {str(e)}')
 
-@app.get('/segment/{video_id}/{segment_name}')
+@app.get('/{video_id}/{segment_name}')
 async def stream_segment(video_id: int, segment_name: str):
     '''
     Get a segment named `segment_name` at video with id `video_id`
@@ -56,7 +56,7 @@ async def stream_segment(video_id: int, segment_name: str):
 
 
 
-@app.post('/upload/{video_id}')
+@app.post('/{video_id}')
 async def upload_video(video_id: int, file: UploadFile):
     """
     Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `video_id`
