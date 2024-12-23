@@ -58,34 +58,34 @@ async def stream_segment(movie_id: int, segment_name: str):
 
 @app.post('/{movie_id}')
 async def upload_video(movie_id: int, video: UploadFile):
-    """
+    '''
     Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `movie_id`
-    """
+    '''
     with TemporaryDirectory() as temp_dir:
         input_file_path = os.path.join(temp_dir, video.filename)
         
         # save the uploaded file temporarily for further ffmpeg conversion
-        with open(input_file_path, "wb") as temp_file:
+        with open(input_file_path, 'wb') as temp_file:
             temp_file.write(await video.read())
 
-        output_dir = os.path.join(temp_dir, "hls_output")
+        output_dir = os.path.join(temp_dir, 'hls_output')
         os.makedirs(output_dir, exist_ok=True)
 
-        output_m3u8_path = os.path.join(output_dir, "output.m3u8")
-        segment_path_pattern = os.path.join(output_dir, "segment%d.ts")
+        output_m3u8_path = os.path.join(output_dir, 'output.m3u8')
+        segment_path_pattern = os.path.join(output_dir, 'segment%d.ts')
 
         print(input_file_path)
 
         # ffmpeg command to convert to hls + ts
         ffmpeg_command = [
-            "ffmpeg",
-            "-i", input_file_path,
-            "-c", "copy",
-            "-start_number", "0",
-            "-hls_time", "10",
-            "-hls_list_size", "0",
-            "-hls_segment_filename", segment_path_pattern,
-            "-f", "hls",
+            'ffmpeg',
+            '-i', input_file_path,
+            '-c', 'copy',
+            '-start_number', '0',
+            '-hls_time', '10',
+            '-hls_list_size', '0',
+            '-hls_segment_filename', segment_path_pattern,
+            '-f', 'hls',
             output_m3u8_path
         ]
 
@@ -93,23 +93,23 @@ async def upload_video(movie_id: int, video: UploadFile):
             # convert to hls + ts
             subprocess.run(ffmpeg_command, check=True)
         except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"FFmpeg error: {e}")
+            raise HTTPException(status_code=500, detail=f'FFmpeg error: {e}')
 
         # upload m3u8 and the segments to S3
         try:
             # m3u8
-            m3u8_key = f"{movie_id}/output.m3u8"
-            with open(output_m3u8_path, "rb") as m3u8_file:
+            m3u8_key = f'{movie_id}/output.m3u8'
+            with open(output_m3u8_path, 'rb') as m3u8_file:
                 s3_client.upload_fileobj(m3u8_file, MINIO_BUCKET, m3u8_key)
 
             # segments
             for segment_file in os.listdir(output_dir):
-                if segment_file.endswith(".ts"):
+                if segment_file.endswith('.ts'):
                     segment_path = os.path.join(output_dir, segment_file)
-                    segment_key = f"{movie_id}/{segment_file}"
-                    with open(segment_path, "rb") as ts_file:
+                    segment_key = f'{movie_id}/{segment_file}'
+                    with open(segment_path, 'rb') as ts_file:
                         s3_client.upload_fileobj(ts_file, MINIO_BUCKET, segment_key)
 
-            return {"msg": "File and segments uploaded successfully"}
+            return {'msg': 'File and segments uploaded successfully'}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to upload HLS files: {e}")
+            raise HTTPException(status_code=500, detail=f'Failed to upload HLS files: {e}')
