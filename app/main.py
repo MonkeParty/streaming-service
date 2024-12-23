@@ -59,7 +59,7 @@ async def stream_segment(video_id: int, segment_name: str):
 @app.post('/upload/{video_id}')
 async def upload_video(video_id: int, file: UploadFile):
     """
-    Upload an MP4 file, convert it to HLS format (m3u8 and TS segments), and upload them to MinIO under the specified media ID.
+    Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `video_id`
     """
     with TemporaryDirectory() as temp_dir:
         input_file_path = os.path.join(temp_dir, file.filename)
