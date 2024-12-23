@@ -57,16 +57,16 @@ async def stream_segment(movie_id: int, segment_name: str):
 
 
 @app.post('/{movie_id}')
-async def upload_video(movie_id: int, file: UploadFile):
+async def upload_video(movie_id: int, video: UploadFile):
     """
     Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `movie_id`
     """
     with TemporaryDirectory() as temp_dir:
-        input_file_path = os.path.join(temp_dir, file.filename)
+        input_file_path = os.path.join(temp_dir, video.filename)
         
         # save the uploaded file temporarily for further ffmpeg conversion
         with open(input_file_path, "wb") as temp_file:
-            temp_file.write(await file.read())
+            temp_file.write(await video.read())
 
         output_dir = os.path.join(temp_dir, "hls_output")
         os.makedirs(output_dir, exist_ok=True)
