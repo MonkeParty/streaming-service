@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=Path.cwd()/'.env', env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file=Path.cwd()/'.env-example', env_file_encoding='utf-8')
 
     minio_root_user: str
     minio_root_password: str

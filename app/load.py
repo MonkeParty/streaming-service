@@ -7,6 +7,8 @@ from config import settings
 import boto3
 import os
 
+print('Loading films')
+
 s3_client = boto3.client(
     's3',
     aws_access_key_id=settings.minio_root_user,
@@ -15,33 +17,9 @@ s3_client = boto3.client(
 )
 
 MINIO_BUCKET = settings.minio_bucket
-VIDEO_FOLDER = './hls-videos'
-
 
 try:
     s3_client.create_bucket(Bucket=MINIO_BUCKET)
     print(f'Bucket \'{MINIO_BUCKET}\' created.')
 except s3_client.exceptions.BucketAlreadyOwnedByYou:
     print(f'Bucket \'{MINIO_BUCKET}\' already exists.')
-
-
-# TODO: make this persistent across multiple loads
-media_id = 0
-
-for root, dirs, files in os.walk(VIDEO_FOLDER):
-    for file in files:
-        file_path = os.path.join(root, file)
-        key = f'{media_id}/{file}'
-        s3_client.upload_file(file_path, MINIO_BUCKET, key)
-        print(f'File {file_path} uploaded to s3://{MINIO_BUCKET}/{key}')
-
-    if 'output.m3u8' in files:
-        media_id += 1
-
-
-# response = s3_client.list_objects_v2(Bucket=MINIO_BUCKET, Prefix=str(media_id))
-# for obj in response.get('Contents', []):
-#     print(obj['Key'])
-
-# response = s3_client.list_objects_v2(Bucket='movies', Prefix='12345/')
-# print(response)
