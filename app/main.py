@@ -2,12 +2,13 @@ import os
 import subprocess
 from tempfile import TemporaryDirectory
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, UploadFile, Depends, status, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import boto3
 
 
+from app.auth import can_user_action_on_movie, get_current_user_id
 from app.config import settings
 
 
@@ -29,10 +30,17 @@ class StreamRequest(BaseModel):
 
 
 @app.get('/{movie_id}')
-async def stream_video(movie_id: int):
+async def stream_video(
+    response: Response,
+    movie_id: int,
+):
     '''
     Get `.m3u8` file for streaming
     '''
+    if not can_user_action_on_movie(user_id, 'view', movie_id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     try:
         return RedirectResponse(url=s3_client.generate_presigned_url(
             'get_object',
@@ -42,10 +50,19 @@ async def stream_video(movie_id: int):
         raise HTTPException(status_code=404, detail=f'Media not found: {str(e)}')
 
 @app.get('/{movie_id}/{segment_name}')
-async def stream_segment(movie_id: int, segment_name: str):
+async def stream_segment(
+    response: Response,
+    movie_id: int,
+    segment_name: str,
+    user_id: int = Depends(get_current_user_id),
+):
     '''
     Get a segment named `segment_name` for movie with id `movie_id`
     '''
+    if not can_user_action_on_movie(user_id, 'view', movie_id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     try:
         return RedirectResponse(url=s3_client.generate_presigned_url(
             'get_object',
@@ -57,10 +74,19 @@ async def stream_segment(movie_id: int, segment_name: str):
 
 
 @app.post('/{movie_id}')
-async def upload_video(movie_id: int, video: UploadFile):
+async def upload_video(
+    response: Response,
+    movie_id: int,
+    video: UploadFile,
+    user_id: int = Depends(get_current_user_id),
+):
     '''
     Upload a video file, convert it to an HLS format: `.m3u8` and `.ts` and upload them to minio with id `movie_id`
     '''
+    if not can_user_action_on_movie(user_id, 'edit', movie_id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     with TemporaryDirectory() as temp_dir:
         input_file_path = os.path.join(temp_dir, video.filename)
         

@@ -12,4 +12,8 @@ class Settings(BaseSettings):
     minio_port: int
     minio_console_port: int
 
+    jwt_secret_key: str
+    jwt_algorithm: str
+    auth_service_address: str
+
 settings = Settings()
