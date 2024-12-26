@@ -33,6 +33,7 @@ class StreamRequest(BaseModel):
 async def stream_video(
     response: Response,
     movie_id: int,
+    user_id: int = Depends(get_current_user_id),
 ):
     '''
     Get `.m3u8` file for streaming
